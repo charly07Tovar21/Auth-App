@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { LoginRequest } from '../interfaces/login-request';
 import { jwtDecode } from 'jwt-decode'
 import { RegisterRequest } from '../interfaces/register-request';
+import { UserDetail } from '../interfaces/user-detail';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +32,9 @@ export class Auth {
     return this.http
     .post <AuthResponse> (`${this.apiUrl}Account/register`, data);
   }
+
+  getDetail = (): Observable <UserDetail> => 
+    this.http.get<UserDetail>(`${this.apiUrl}Account/detail`);
 
   getUserDetail = () => {
     const token = this.getToken();
@@ -66,6 +70,6 @@ logout=():void=>{
   localStorage.removeItem(this.tokenKey);
 }
 
-  private getToken = ():string|null => localStorage.getItem(this.tokenKey) || '';
+  getToken = ():string|null => localStorage.getItem(this.tokenKey) || '';
 }
 
