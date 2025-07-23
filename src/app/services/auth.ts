@@ -15,7 +15,7 @@ import { ChangePasswordRequest } from '../interfaces/change-password-reques';
 })
 export class Auth {
   apiUrl: string = environment.apiUrl;
-  private tokenKey = 'token';
+  private userKey = 'token';
 
   constructor(private http: HttpClient) { }
 
@@ -23,7 +23,7 @@ export class Auth {
     return this.http.post<AuthResponse>(`${this.apiUrl}Account/login`, data).pipe(
       map((response) => {
         if (response.isSuccess) {
-          localStorage.setItem('token', response.token);
+          localStorage.setItem('token', JSON.stringify(response));
         }
         return response;
       })
@@ -55,7 +55,7 @@ export class Auth {
     const token = this.getToken();
     if (!token) return false;
 
-    return !this.isTokenExpired();
+    return true;
   };
 
   private isTokenExpired() {
@@ -64,12 +64,12 @@ export class Auth {
 
     const decoded = jwtDecode(token);
     const isTokenExpired = Date.now() > decoded['exp']! * 1000;
-    if (isTokenExpired) this.logout();
-    return isTokenExpired;
+     if (isTokenExpired) this.logout(); 
+    return true;
   }
 
   logout = (): void => {
-    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
   }
 
   getRoles = (): string[] | null => {
@@ -82,7 +82,7 @@ export class Auth {
   }
   getAll = (): Observable<UserDetail[]> => this.http.get<UserDetail[]>(`${this.apiUrl}Account`)
 
-  getToken = (): string | null => localStorage.getItem(this.tokenKey) || '';
+  //getToken = (): string | null => localStorage.getItem(this.tokenKey) || '';
 
 
   forgotPassword = (email: string): Observable<AuthResponse> =>
@@ -96,6 +96,25 @@ export class Auth {
   changePassword = (data: ChangePasswordRequest): Observable<AuthResponse> =>
     this.http.post<AuthResponse>(`${this.apiUrl}account/change-password`, data);
 
-  
+  refreshToken = (data: {
+    email: string;
+    token: string;
+    refreshToken: string;
+  }): Observable<AuthResponse> =>
+    this.http.post<AuthResponse>(`${this.apiUrl}account/refresh-token`, data);
+
+  getToken = (): string | null => {
+    const user = localStorage.getItem(this.userKey);
+    if (!user) return null;
+    const userDetail: AuthResponse = JSON.parse(user);
+    return userDetail.token;
+  };
+
+  getRefreshToken = (): string | null => {
+    const user = localStorage.getItem(this.userKey);
+    if (!user) return null;
+    const userDetail: AuthResponse = JSON.parse(user);
+    return userDetail.refreshToken;
+  };
 }
 
