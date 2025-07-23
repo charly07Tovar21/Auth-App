@@ -70,6 +70,16 @@ logout=():void=>{
   localStorage.removeItem(this.tokenKey);
 }
 
+getRoles = ():string [] | null => {
+  const token = this.getToken();
+  if(!token) return null;
+
+const decodedToken: any = jwtDecode(token);
+return decodedToken.role || null;
+
+}
+getAll = () : Observable <UserDetail []> => this.http.get<UserDetail[]>(`${this.apiUrl}Account`)
+
   getToken = ():string|null => localStorage.getItem(this.tokenKey) || '';
 }
 
